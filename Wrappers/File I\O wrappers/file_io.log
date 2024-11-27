@@ -1,0 +1,9 @@
+[Mon Nov 25 16:33:19 2024] Flushed buffer data to file
+[Tue Nov 26 16:14:14 2024] Flushed buffer data to file
+[Tue Nov 26 16:14:14 2024] [Tue Nov 26 16:14:14 2024
+] Closed file descriptor 3
+[Tue Nov 26 16:14:14 2024] Failed to read file with my_safe_read
+[Tue Nov 26 16:14:48 2024] Flushed buffer data to file
+[Tue Nov 26 16:14:48 2024] [Tue Nov 26 16:14:48 2024
+] Closed file descriptor 3
+[Tue Nov 26 16:14:48 2024] Failed to read file with my_safe_read
