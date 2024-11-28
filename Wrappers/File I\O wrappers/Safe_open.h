@@ -9,6 +9,6 @@
 
 
 void check_path(const char* path);
-FILE* safe_open(const char* filename, const char* mode);
+int safe_open(const char* filename, int flags , mode_t mode);
 
 #endif

@@ -1,6 +1,6 @@
 #include "logger.h"
 
-#define LOG_FILE "file_io.log"
+#define LOG_FILE "/tmp/file_io.log"
 
 void log_message(const char *message) {
     FILE *log_fp = fopen(LOG_FILE, "a");
@@ -18,21 +18,23 @@ void log_message(const char *message) {
 }
 
 int open_logger(const char *pathname, int flags, mode_t mode) {
-    int fd = open(pathname, flags, mode);
+    ssize_t (*orig_open)(const char *, int, mode_t) = dlsym(RTLD_NEXT, "open");
+    int fd = orig_open(pathname, flags, mode);
     if (fd == -1) {
         log_message("Failed to open file");
     } else {
         char log_msg[256];
         time_t now = time(NULL);
     char *timestamp = ctime(&now);
-        snprintf(log_msg, sizeof(log_msg), "[%s] Opened file: %s", timestamp, pathname);
+        snprintf(log_msg, sizeof(log_msg), "[%s] Opened file: %s with fd = %d", timestamp, pathname, fd);
         log_message(log_msg);
     }
     return fd;
 }
 
 ssize_t read_logger(int fd, void *buf, size_t count) {
-    ssize_t bytes_read = read(fd, buf, count);
+    ssize_t (*orig_read)(int, void *, size_t) = dlsym(RTLD_NEXT, "read");
+    ssize_t bytes_read = orig_read(fd, buf, count);
     if (bytes_read == -1) {
         log_message("Failed to read file");
     } else {
@@ -46,7 +48,8 @@ ssize_t read_logger(int fd, void *buf, size_t count) {
 }
 
 ssize_t write_logger(int fd, const void *buf, size_t count) {
-    ssize_t bytes_written = write(fd, buf, count);
+    ssize_t (*orig_write)(int, const void *, size_t) = dlsym(RTLD_NEXT, "write");
+    ssize_t bytes_written = orig_write(fd, buf, count);
     if (bytes_written == -1) {
         log_message("Failed to write file");
     } else {
@@ -60,7 +63,8 @@ ssize_t write_logger(int fd, const void *buf, size_t count) {
 }
 
 int close_logger(int fd) {
-    int result = close(fd);
+    int (*orig_close)(int) = dlsym(RTLD_NEXT, "close");
+    int result = orig_close(fd);
     if (result == -1) {
         log_message("Failed to close file");
     } else {

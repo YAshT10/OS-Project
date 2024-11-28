@@ -1,4 +1,5 @@
 #include "Safe_open.h"
+#include "logger.h"
 
 void check_path(const char* path) {
     char temp[PATH_MAX];
@@ -16,7 +17,7 @@ void check_path(const char* path) {
         if (*p == '/') {
             *p = 0;
             if (access(temp, F_OK) != 0) {
-                fprintf(stderr, "Error: Directory %s doesn't exist\n", temp);
+                // fprintf(stderr, "Error: Directory %s doesn't exist\n", temp);
                 exit(EXIT_FAILURE);
             }
             *p = '/';
@@ -24,27 +25,27 @@ void check_path(const char* path) {
     }
 
     if (access(temp, F_OK) != 0) {
-        fprintf(stderr, "Error: File %s doesn't exist\n", temp);
+        // fprintf(stderr, "Error: File %s doesn't exist\n", temp);
         exit(EXIT_FAILURE);
     }
 }
 
-FILE* safe_open(const char* filename, const char* mode) {
+int safe_open(const char* filename, int flags , mode_t mode) {
     // Check if the mode is valid
-    if (mode == NULL || (strcmp(mode, "r") != 0 && strcmp(mode, "w") != 0 && strcmp(mode, "a") != 0)) {
-        fprintf(stderr, "Error: Invalid mode %s\n", mode);
+    if (flags != O_RDONLY && flags != O_WRONLY && flags != O_RDWR) {
+        perror("Error: Invalid mode\n");
         exit(EXIT_FAILURE);
     }
 
     // If mode is "r", check if the file exists
-    if (strcmp(mode, "r") == 0 && access(filename, F_OK) == -1) {
-        //call teh access_path function
+    if (flags == O_RDONLY && access(filename, F_OK) == -1) {
+        //call the access_path function
         check_path(filename);
         exit(EXIT_FAILURE);
     }
 
-    FILE* file = fopen(filename, mode);
-    if (file == NULL) {
+    int file = open_logger(filename, flags , mode);
+    if (file == -1) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
     }

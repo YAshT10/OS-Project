@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <time.h>
 #include <errno.h>
 
@@ -18,7 +17,7 @@ typedef struct {
 
 void rate_limiter_init(RateLimiter *limiter);
 int rate_limiter_check(RateLimiter *limiter);
-int rate_limited_open(RateLimiter *limiter, const char *pathname, int flags);
+int rate_limited_open(RateLimiter *limiter, const char *pathname, int flags , mode_t mode);
 ssize_t rate_limited_read(RateLimiter *limiter, int fd, void *buf, size_t count);
 
 #endif // RATE_LIMITING_H

@@ -15,7 +15,7 @@ typedef struct {
     size_t size;
 } Buffer;
 
-void buffer_init(Buffer *buffer);
+void buffer_init(Buffer *buffer , int fd);
 void buffer_add(Buffer *buffer, const char *data, size_t data_size);
 void buffer_flush(Buffer *buffer);
 

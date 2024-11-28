@@ -1,8 +1,9 @@
 #include "buffer.h"
 
 // Initialize the buffer
-void buffer_init(Buffer *buffer) {
+void buffer_init(Buffer *buffer , int fd) {
     buffer->size = 0;
+    buffer->fd = fd;
 }
 
 // Add data to the buffer

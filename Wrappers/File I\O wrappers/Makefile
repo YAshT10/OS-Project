@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -I.
+CFLAGS += -fPIC
 
 # Source files
 SRCS = buffer.c control_permission.c logger.c rate_limiting.c Safe_open.c Safe_read.c master_wrapper.c
@@ -10,23 +10,25 @@ SRCS = buffer.c control_permission.c logger.c rate_limiting.c Safe_open.c Safe_r
 # Object files
 OBJS = $(SRCS:.c=.o)
 
-# Executable name
-EXEC = master_wrapper
+EXEC = shared.so
+
+test: main.c
+	gcc -o test main.c
+
+run: $(EXEC) test
+	LD_PRELOAD=./shared.so ./test
 
 # Default target
-all: $(EXEC)
+all: $(EXEC) test
 
 # Link object files to create the executable
 $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -shared -fPIC -ldl -o $@ $^
 
 # Compile source files into object files
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -fPIC
 
 # Clean up build files
 clean:
 	rm -f $(OBJS) $(EXEC)
-
-# Phony targets
-.PHONY: all clean
