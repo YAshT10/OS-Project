@@ -10,16 +10,15 @@ SRCS = buffer.c control_permission.c logger.c rate_limiting.c Safe_open.c Safe_r
 # Object files
 OBJS = $(SRCS:.c=.o)
 
-EXEC = shared.so
+EXEC = filewrp.so
+
+all: $(EXEC) test
 
 test: main.c
 	gcc -o test main.c
 
 run: $(EXEC) test
-	LD_PRELOAD=./shared.so ./test
-
-# Default target
-all: $(EXEC) test
+	LD_PRELOAD=./filewrp.so ./test
 
 # Link object files to create the executable
 $(EXEC): $(OBJS)
@@ -31,4 +30,4 @@ $(EXEC): $(OBJS)
 
 # Clean up build files
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) test

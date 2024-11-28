@@ -8,6 +8,8 @@ void rate_limiter_init(RateLimiter *limiter) {
     limiter->start_time = time(NULL);
 }
 
+//can make different rate limiters for different operations or files
+//lots of customization can be done
 // Check if the rate limit is exceeded
 int rate_limiter_check(RateLimiter *limiter) {
     time_t current_time = time(NULL);
@@ -26,6 +28,7 @@ int rate_limiter_check(RateLimiter *limiter) {
 int rate_limited_open(RateLimiter *limiter, const char *pathname, int flags, mode_t mode) {
     if (rate_limiter_check(limiter) == -1) {
         errno = EAGAIN; // Resource temporarily unavailable
+        fprintf(stderr,"Rate limit exceeded\n");
         return -1;
     }
     return safe_open(pathname, flags , mode);
@@ -35,7 +38,7 @@ int rate_limited_open(RateLimiter *limiter, const char *pathname, int flags, mod
 ssize_t rate_limited_read(RateLimiter *limiter, int fd, void *buf, size_t count) {
     if (rate_limiter_check(limiter) == -1) {
         errno = EAGAIN; // Resource temporarily unavailable
-        perror("Rate limit exceeded\n");
+        fprintf(stderr,"Rate limit exceeded\n");
         return -1;
     }
     return safe_read(fd, buf, count);

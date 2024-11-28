@@ -1,7 +1,5 @@
 #include "logger.h"
 
-#define LOG_FILE "/tmp/file_io.log"
-
 void log_message(const char *message) {
     FILE *log_fp = fopen(LOG_FILE, "a");
     if (log_fp == NULL) {
@@ -11,7 +9,7 @@ void log_message(const char *message) {
 
     time_t now = time(NULL);
     char *timestamp = ctime(&now);
-    timestamp[strlen(timestamp) - 1] = '\0'; // Remove newline character
+    timestamp[strlen(timestamp) - 1] = '\0';
 
     fprintf(log_fp, "[%s] %s\n", timestamp, message);
     fclose(log_fp);
@@ -21,7 +19,11 @@ int open_logger(const char *pathname, int flags, mode_t mode) {
     ssize_t (*orig_open)(const char *, int, mode_t) = dlsym(RTLD_NEXT, "open");
     int fd = orig_open(pathname, flags, mode);
     if (fd == -1) {
+        if(errno == EINVAL) {
+            log_message("Invalid flags or mode");
+        } else {
         log_message("Failed to open file");
+    }
     } else {
         char log_msg[256];
         time_t now = time(NULL);

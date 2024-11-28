@@ -10,16 +10,25 @@ ssize_t safe_read(int fd, void *buf, size_t count) {
         return -1;
     }
 
+    int bytes_available;
+    ioctl(fd, FIONREAD, &bytes_available);
+
     // Check if the file is empty
-    if (file_stat.st_size == 0) {
-        perror("Warning: The file is empty.\n");
+    if (bytes_available == 0) {
+        fprintf(stderr, "Warning: The file is empty.\n");
         return 0;
     }
 
     // Check if the requested byte count is greater than the file size
-    if ((long long)count > (long long)file_stat.st_size) {
-        perror("Error: Requested byte count is greater than the file size.\n");
-        return -1;
+    if ((long long)count > (long long)bytes_available) {
+        printf("Error: Requested byte count is greater than the available bytes.\nDo you want to read all the remaining bytes? Y/N\n");
+        char c;
+        scanf(" %c", &c);
+        if (c == 'Y' || c == 'y') {
+            count = file_stat.st_size;
+        } else {
+            return -1;
+        }
     }
 
     // Perform the read operation
