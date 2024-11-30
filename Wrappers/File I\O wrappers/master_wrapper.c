@@ -7,13 +7,25 @@
 
 // Function to open a file with controlled and rate-limited access
 RateLimiter rateLimiter = {0, 0};
+Buffer buffer = {0, -1, 0};
 
 int open(const char *pathname, int flags, mode_t mode) {
+    
     if(rateLimiter.start_time == 0) {
         rate_limiter_init(&rateLimiter);
     }
-    if (check_permission(pathname)) {
-        return rate_limited_open(&rateLimiter, pathname, flags, mode);
+    if (check_permission(pathname) != -1) {
+        int fd = rate_limited_open(&rateLimiter, pathname, flags, mode);
+        if(fd == -1) {
+            return -1;
+        }
+        else {
+            if(buffer.fd != -1) {
+                buffer_flush(&buffer);
+            }
+            buffer_init(&buffer, fd);
+            return fd;
+        }
     } else {
         log_message("Permission denied for file - open");
         return -1;
@@ -25,21 +37,41 @@ ssize_t read(int fd, void *buf, size_t count) {
     if(rateLimiter.start_time == 0) {
         rate_limiter_init(&rateLimiter);
     }
-    if (check_permission(pathname)) {
+    if (check_read_fd(fd)) {
+        if(buffer.fd == fd) {
+            buffer_flush(&buffer);
+        }
         return rate_limited_read(&rateLimiter, fd, buf, count);
     } else {
-        log_message("Permission denied for file - read");
         return -1;
     }
-    
 }
 
 // Function to write to a file
 ssize_t write(int fd, const void *buf, size_t count) {
-    if (check_permission(pathname)) {
-        return write_logger(fd, buf, count);
+    if (check_write_fd(fd)) {
+        if(buffer.fd == fd) {
+            if(count >= BUFFER_SIZE) {
+                buffer_flush(&buffer);
+                write_logger(fd, buf, count);
+            }
+            else
+            buffer_add(&buffer, buf, count);
+            
+            return count;
+        }
+        else {
+            if(count < buffer.size || count >= BUFFER_SIZE) {
+                return write_logger(fd, buf, count);
+            }
+            else {
+                buffer_flush(&buffer);
+                buffer_init(&buffer, fd);
+                buffer_add(&buffer, buf, count);
+                return count;
+            }
+        }
     } else {
-        log_message("Permission denied for file - write");
         return -1;
     }
     
@@ -47,6 +79,10 @@ ssize_t write(int fd, const void *buf, size_t count) {
 
 // Function to close a file
 int close(int fd) {
+    if(buffer.fd == fd) {
+        buffer_flush(&buffer);
+        buffer.fd = -1;
+    }
     return close_logger(fd);
 }
 

@@ -38,8 +38,24 @@ ssize_t read_logger(int fd, void *buf, size_t count) {
     ssize_t (*orig_read)(int, void *, size_t) = dlsym(RTLD_NEXT, "read");
     ssize_t bytes_read = orig_read(fd, buf, count);
     if (bytes_read == -1) {
-        log_message("Failed to read file");
+        if(errno == EBADF) {
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Invalid file descriptor for reading ; fd : %d", fd);
+            log_message(log_msg);
+        } else if(errno == EFAULT) {
+            log_message("Bad address - read");
+        } else if (errno == EIO) {
+            log_message("I/O error - read");
+        }
+        else{
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Failed to read file ; fd : %d", fd);
+            log_message(log_msg);
+        }
     } else {
+        if(buf == NULL) {
+            return 0;
+        }
         char log_msg[256];
         time_t now = time(NULL);
         char *timestamp = ctime(&now);
@@ -53,12 +69,53 @@ ssize_t write_logger(int fd, const void *buf, size_t count) {
     ssize_t (*orig_write)(int, const void *, size_t) = dlsym(RTLD_NEXT, "write");
     ssize_t bytes_written = orig_write(fd, buf, count);
     if (bytes_written == -1) {
-        log_message("Failed to write file");
+        if(errno == EBADF) {
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Invalid file descriptor for writing ; fd : %d", fd);
+            log_message(log_msg);
+        } else if(errno == EFAULT) {
+            log_message("Bad address - write");
+        } else if (errno == EIO) {
+            log_message("I/O error - write");
+        }
+        else{
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Failed to write file ; fd : %d", fd);
+            log_message(log_msg);
+        }
     } else {
         char log_msg[256];
         time_t now = time(NULL);
         char *timestamp = ctime(&now);
         snprintf(log_msg, sizeof(log_msg), "[%s] Wrote %zd bytes to file descriptor %d", timestamp, bytes_written, fd);
+        log_message(log_msg);
+    }
+    return bytes_written;
+}
+
+ssize_t buffer_logger(int fd, const void *buf, size_t count) {
+    ssize_t (*orig_write)(int, const void *, size_t) = dlsym(RTLD_NEXT, "write");
+    ssize_t bytes_written = orig_write(fd, buf, count);
+    if (bytes_written == -1) {
+        if(errno == EBADF) {
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Invalid file descriptor for writing ; fd : %d", fd);
+            log_message(log_msg);
+        } else if(errno == EFAULT) {
+            log_message("Bad address - write");
+        } else if (errno == EIO) {
+            log_message("I/O error - write");
+        }
+        else{
+            char log_msg[256];
+            snprintf(log_msg, sizeof(log_msg), "Failed to flush buffer to file ; fd : %d", fd);
+            log_message(log_msg);
+        }
+    } else {
+        char log_msg[256];
+        time_t now = time(NULL);
+        char *timestamp = ctime(&now);
+        snprintf(log_msg, sizeof(log_msg), "[%s] Flushed %zd bytes from buffer to file descriptor %d", timestamp, bytes_written, fd);
         log_message(log_msg);
     }
     return bytes_written;

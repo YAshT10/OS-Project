@@ -69,8 +69,15 @@ int safe_open(const char* filename, int flags , mode_t mode) {
 
     int file = open_logger(filename, flags , mode);
     if (file == -1) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
+        if(errno == EACCES) {
+            fprintf(stderr, "Error: Permission denied\n");
+        } else if(errno == EINVAL) {
+            fprintf(stderr, "Error: Invalid flags or mode\n");
+        } else if(errno == EEXIST) {
+            fprintf(stderr, "Error: File already exists\n");
+        } else {
+            fprintf(stderr, "Error: Failed to open file\n");
+        }
     }
     return file;
 }

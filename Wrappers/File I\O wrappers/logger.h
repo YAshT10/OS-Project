@@ -20,6 +20,7 @@ void log_message(const char *message);
 int open_logger(const char *pathname, int flags, mode_t mode);
 ssize_t read_logger(int fd, void *buf, size_t count);
 ssize_t write_logger(int fd, const void *buf, size_t count);
+ssize_t buffer_logger(int fd, const void *buf, size_t count);
 int close_logger(int fd);
 
 #endif // LOG_H
