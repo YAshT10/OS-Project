@@ -1,0 +1,4 @@
+This is an example text file.
+You can add any content you like here.
+Feel free to modify or delete these lines.
+Have a great day!
